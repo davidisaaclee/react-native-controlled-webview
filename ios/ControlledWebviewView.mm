@@ -17,6 +17,7 @@ using namespace facebook::react;
 @implementation ControlledWebviewView {
     NSURL * _sourceURL;
     WKWebView * _webView;
+    BOOL _hasLoadedInitialURL;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -38,6 +39,7 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
     _webView = [WKWebView new];
     _webView.navigationDelegate = self;
     _webView.scrollView.delegate = self;
+    _hasLoadedInitialURL = NO;
 
     // Add KVO for URL changes
     [_webView addObserver:self forKeyPath:@"URL" options:NSKeyValueObservingOptionNew context:nil];
@@ -53,11 +55,13 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
     const auto &oldViewProps = *std::static_pointer_cast<ControlledWebviewViewProps const>(_props);
     const auto &newViewProps = *std::static_pointer_cast<ControlledWebviewViewProps const>(props);
 
-  if (oldViewProps.sourceUrl != newViewProps.sourceUrl) {
-    NSString *urlString = [NSString stringWithCString:newViewProps.sourceUrl.c_str() encoding:NSUTF8StringEncoding];
+  // Only load initial URL on first render
+  if (!_hasLoadedInitialURL && !newViewProps.initialSourceUrl.empty()) {
+    NSString *urlString = [NSString stringWithCString:newViewProps.initialSourceUrl.c_str() encoding:NSUTF8StringEncoding];
     _sourceURL = [NSURL URLWithString:urlString];
     if (_sourceURL && _sourceURL.scheme && _sourceURL.host) {
       [_webView loadRequest:[NSURLRequest requestWithURL:_sourceURL]];
+      _hasLoadedInitialURL = YES;
     }
   }
 
@@ -101,6 +105,14 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
             BOOL animated = args.count > 2 ? [args[2] boolValue] : NO;
 
             [_webView.scrollView setContentOffset:CGPointMake(x, y) animated:animated];
+        }
+    } else if ([commandName isEqualToString:@"setSourceUrl"]) {
+        if (args.count >= 1) {
+            NSString *urlString = args[0];
+            _sourceURL = [NSURL URLWithString:urlString];
+            if (_sourceURL && _sourceURL.scheme && _sourceURL.host) {
+                [_webView loadRequest:[NSURLRequest requestWithURL:_sourceURL]];
+            }
         }
     }
 }

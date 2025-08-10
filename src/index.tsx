@@ -10,13 +10,14 @@ type ContentOffsetChangeEvent = { contentOffset: { x: Double; y: Double } };
 type SourceUrlChangeEvent = { sourceUrl: string };
 
 export interface ControlledWebviewViewProps extends ViewProps {
-  sourceUrl?: string;
+  initialSourceUrl?: string;
   onSourceUrlChange?: DirectEventHandler<SourceUrlChangeEvent>;
   onContentOffsetChange?: DirectEventHandler<ContentOffsetChangeEvent>;
 }
 
 export interface ControlledWebviewViewRef {
   setContentOffset: (x: number, y: number, animated?: boolean) => void;
+  setSourceUrl: (url: string) => void;
 }
 
 export const ControlledWebviewView = forwardRef<
@@ -29,6 +30,11 @@ export const ControlledWebviewView = forwardRef<
     setContentOffset: (x: number, y: number, animated = false) => {
       if (nativeRef.current) {
         Commands.setContentOffset(nativeRef.current, x, y, animated);
+      }
+    },
+    setSourceUrl: (url: string) => {
+      if (nativeRef.current) {
+        Commands.setSourceUrl(nativeRef.current, url);
       }
     },
   }));

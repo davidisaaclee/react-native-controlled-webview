@@ -13,7 +13,7 @@ export default function App() {
     <View style={styles.container}>
       <ControlledWebviewView
         ref={webviewRef}
-        sourceUrl="https://google.com"
+        initialSourceUrl="https://apple.com"
         onSourceUrlChange={(event) => {
           console.log('onSourceUrlChange', event.nativeEvent);
         }}
@@ -49,7 +49,19 @@ export default function App() {
             webviewRef.current?.setContentOffset(0, 0, true);
           }}
         />
-        <Text>{`Content Offset: ${contentOffset.x}, ${contentOffset.y}`}</Text>
+        <Text>{`Content Offset: ${contentOffset.x.toFixed(0)}, ${contentOffset.y.toFixed(0)}`}</Text>
+        <Button
+          title="Google"
+          onPress={() => {
+            webviewRef.current?.setSourceUrl('https://google.com');
+          }}
+        />
+        <Button
+          title="Bing"
+          onPress={() => {
+            webviewRef.current?.setSourceUrl('https://bing.com');
+          }}
+        />
       </View>
     </View>
   );
