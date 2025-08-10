@@ -10,7 +10,7 @@
 
 using namespace facebook::react;
 
-@interface ControlledWebviewView () <RCTControlledWebviewViewViewProtocol, WKNavigationDelegate>
+@interface ControlledWebviewView () <RCTControlledWebviewViewViewProtocol, WKNavigationDelegate, UIScrollViewDelegate>
 
 @end
 
@@ -30,9 +30,11 @@ using namespace facebook::react;
     static const auto defaultProps = std::make_shared<const ControlledWebviewViewProps>();
     _props = defaultProps;
 
-    _view = [[UIView alloc] init];
+    _webView = [WKWebView new];
+    _webView.navigationDelegate = self;
+    _webView.scrollView.delegate = self;
 
-    self.contentView = _view;
+    self.contentView = _webView;
   }
 
   return self;
@@ -43,12 +45,42 @@ using namespace facebook::react;
     const auto &oldViewProps = *std::static_pointer_cast<ControlledWebviewViewProps const>(_props);
     const auto &newViewProps = *std::static_pointer_cast<ControlledWebviewViewProps const>(props);
 
-    if (oldViewProps.color != newViewProps.color) {
-        NSString * colorToConvert = [[NSString alloc] initWithUTF8String: newViewProps.color.c_str()];
-        [_view setBackgroundColor:[self hexStringToColor:colorToConvert]];
+  if (oldViewProps.sourceUrl != newViewProps.sourceUrl) {
+    NSString *urlString = [NSString stringWithCString:newViewProps.sourceUrl.c_str() encoding:NSUTF8StringEncoding];
+    _sourceURL = [NSURL URLWithString:urlString];
+    if (_sourceURL && _sourceURL.scheme && _sourceURL.host) {
+      [_webView loadRequest:[NSURLRequest requestWithURL:_sourceURL]];
     }
+  }
+  
+  if (
+      oldViewProps.contentOffset.x != newViewProps.contentOffset.x
+      || oldViewProps.contentOffset.y != newViewProps.contentOffset.y
+    ) {
+      if (_webView.scrollView.contentOffset.x != newViewProps.contentOffset.x || _webView.scrollView.contentOffset.y != newViewProps.contentOffset.y) {
+        _webView.scrollView.contentOffset = CGPointMake(newViewProps.contentOffset.x, newViewProps.contentOffset.y);
+      }
+  }
 
-    [super updateProps:props oldProps:oldProps];
+  [super updateProps:props oldProps:oldProps];
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+  
+  ControlledWebviewViewEventEmitter::OnContentOffsetChange result = ControlledWebviewViewEventEmitter::OnContentOffsetChange();
+  result.contentOffset.x = scrollView.contentOffset.x;
+  result.contentOffset.y = scrollView.contentOffset.y;
+  self.eventEmitter.onContentOffsetChange(result);
+}
+
+- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation
+{
+}
+
+- (const ControlledWebviewViewEventEmitter &)eventEmitter
+{
+  return static_cast<const ControlledWebviewViewEventEmitter &>(*_eventEmitter);
 }
 
 Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)

@@ -5,13 +5,13 @@ import type {
 } from 'react-native/Libraries/Types/CodegenTypes';
 import type { ViewProps } from 'react-native';
 
-// type Vector2D = { x: number; y: number };
-
 type ContentOffsetChangeEvent = { contentOffset: { x: Double; y: Double } };
+type SourceUrlChangeEvent = { sourceUrl: string };
 
 interface NativeProps extends ViewProps {
-  color?: string;
   sourceUrl?: string;
+  onSourceUrlChange?: DirectEventHandler<SourceUrlChangeEvent>;
+
   contentOffset?: { x: Double; y: Double };
   onContentOffsetChange?: DirectEventHandler<ContentOffsetChangeEvent>;
 }
