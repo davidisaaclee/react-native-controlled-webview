@@ -24,6 +24,11 @@ using namespace facebook::react;
     return concreteComponentDescriptorProvider<ControlledWebviewViewComponentDescriptor>();
 }
 
+Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
+{
+    return ControlledWebviewView.class;
+}
+
 - (instancetype)initWithFrame:(CGRect)frame
 {
   if (self = [super initWithFrame:frame]) {
@@ -55,30 +60,18 @@ using namespace facebook::react;
       [_webView loadRequest:[NSURLRequest requestWithURL:_sourceURL]];
     }
   }
-  
-  if (
-      oldViewProps.contentOffset.x != newViewProps.contentOffset.x
-      || oldViewProps.contentOffset.y != newViewProps.contentOffset.y
-    ) {
-      if (_webView.scrollView.contentOffset.x != newViewProps.contentOffset.x || _webView.scrollView.contentOffset.y != newViewProps.contentOffset.y) {
-        _webView.scrollView.contentOffset = CGPointMake(newViewProps.contentOffset.x, newViewProps.contentOffset.y);
-      }
-  }
+
 
   [super updateProps:props oldProps:oldProps];
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-  
+
   ControlledWebviewViewEventEmitter::OnContentOffsetChange result = ControlledWebviewViewEventEmitter::OnContentOffsetChange();
   result.contentOffset.x = scrollView.contentOffset.x;
   result.contentOffset.y = scrollView.contentOffset.y;
   self.eventEmitter.onContentOffsetChange(result);
-}
-
-- (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation
-{
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
@@ -99,6 +92,19 @@ using namespace facebook::react;
     }
 }
 
+- (void)handleCommand:(const NSString *)commandName args:(const NSArray *)args
+{
+    if ([commandName isEqualToString:@"setContentOffset"]) {
+        if (args.count >= 2) {
+            CGFloat x = [args[0] doubleValue];
+            CGFloat y = [args[1] doubleValue];
+            BOOL animated = args.count > 2 ? [args[2] boolValue] : NO;
+
+            [_webView.scrollView setContentOffset:CGPointMake(x, y) animated:animated];
+        }
+    }
+}
+
 - (void)dealloc
 {
     [_webView removeObserver:self forKeyPath:@"URL"];
@@ -107,11 +113,6 @@ using namespace facebook::react;
 - (const ControlledWebviewViewEventEmitter &)eventEmitter
 {
   return static_cast<const ControlledWebviewViewEventEmitter &>(*_eventEmitter);
-}
-
-Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
-{
-    return ControlledWebviewView.class;
 }
 
 - hexStringToColor:(NSString *)stringToConvert

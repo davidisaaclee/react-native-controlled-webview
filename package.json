@@ -145,9 +145,6 @@
     "name": "ControlledWebviewViewSpec",
     "type": "all",
     "jsSrcsDir": "src",
-    "android": {
-      "javaPackageName": "com.controlledwebview"
-    },
     "ios": {
       "componentProvider": {
         "ControlledWebviewView": "ControlledWebviewView"

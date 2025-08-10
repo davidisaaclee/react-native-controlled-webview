@@ -1,18 +1,22 @@
-import { useState } from 'react';
-import { View, StyleSheet, Button } from 'react-native';
-import { ControlledWebviewView } from 'react-native-controlled-webview';
+import { useRef, useState } from 'react';
+import { Text, View, StyleSheet, Button } from 'react-native';
+import {
+  ControlledWebviewView,
+  type ControlledWebviewViewRef,
+} from 'react-native-controlled-webview';
 
 export default function App() {
   const [contentOffset, setContentOffset] = useState({ x: 0, y: 0 });
+  const webviewRef = useRef<ControlledWebviewViewRef>(null);
 
   return (
     <View style={styles.container}>
       <ControlledWebviewView
+        ref={webviewRef}
         sourceUrl="https://google.com"
         onSourceUrlChange={(event) => {
           console.log('onSourceUrlChange', event.nativeEvent);
         }}
-        contentOffset={contentOffset}
         onContentOffsetChange={(event) => {
           setContentOffset(event.nativeEvent.contentOffset);
           // console.log(
@@ -34,11 +38,18 @@ export default function App() {
         }}
       >
         <Button
-          title="0,0"
+          title="Jump to top"
           onPress={() => {
-            setContentOffset({ x: 0, y: 0 });
+            webviewRef.current?.setContentOffset(0, 0, false);
           }}
         />
+        <Button
+          title="Scroll to top"
+          onPress={() => {
+            webviewRef.current?.setContentOffset(0, 0, true);
+          }}
+        />
+        <Text>{`Content Offset: ${contentOffset.x}, ${contentOffset.y}`}</Text>
       </View>
     </View>
   );
