@@ -34,6 +34,9 @@ using namespace facebook::react;
     _webView.navigationDelegate = self;
     _webView.scrollView.delegate = self;
 
+    // Add KVO for URL changes
+    [_webView addObserver:self forKeyPath:@"URL" options:NSKeyValueObservingOptionNew context:nil];
+
     self.contentView = _webView;
   }
 
@@ -76,6 +79,29 @@ using namespace facebook::react;
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation
 {
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
+{
+    if ([keyPath isEqualToString:@"URL"] && object == _webView) {
+        NSURL *newURL = change[NSKeyValueChangeNewKey];
+        if (newURL && ![newURL isEqual:[NSNull null]] && _eventEmitter) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (self->_eventEmitter) {
+                    ControlledWebviewViewEventEmitter::OnSourceUrlChange result = ControlledWebviewViewEventEmitter::OnSourceUrlChange();
+                    result.sourceUrl = std::string([newURL.absoluteString UTF8String]);
+                    self.eventEmitter.onSourceUrlChange(result);
+                }
+            });
+        }
+    } else {
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+    }
+}
+
+- (void)dealloc
+{
+    [_webView removeObserver:self forKeyPath:@"URL"];
 }
 
 - (const ControlledWebviewViewEventEmitter &)eventEmitter

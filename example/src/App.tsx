@@ -9,6 +9,9 @@ export default function App() {
     <View style={styles.container}>
       <ControlledWebviewView
         sourceUrl="https://google.com"
+        onSourceUrlChange={(event) => {
+          console.log('onSourceUrlChange', event.nativeEvent);
+        }}
         contentOffset={contentOffset}
         onContentOffsetChange={(event) => {
           setContentOffset(event.nativeEvent.contentOffset);
