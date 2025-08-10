@@ -50,5 +50,4 @@ The project uses a monorepo structure with an example app in `example/` director
 - ESLint with Prettier for code formatting
 - TypeScript for type checking with strict configuration
 - Jest for testing
-- Lefthook for pre-commit hooks (lint + typecheck)
 - Conventional commits for commit message format
