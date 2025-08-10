@@ -8,16 +8,19 @@ import type {
 
 type ContentOffsetChangeEvent = { contentOffset: { x: Double; y: Double } };
 type SourceUrlChangeEvent = { sourceUrl: string };
+type ZoomScaleChangeEvent = { zoomScale: Double };
 
 export interface ControlledWebviewViewProps extends ViewProps {
   initialSourceUrl?: string;
   onSourceUrlChange?: DirectEventHandler<SourceUrlChangeEvent>;
   onContentOffsetChange?: DirectEventHandler<ContentOffsetChangeEvent>;
+  onZoomScaleChange?: DirectEventHandler<ZoomScaleChangeEvent>;
 }
 
 export interface ControlledWebviewViewRef {
   setContentOffset: (x: number, y: number, animated?: boolean) => void;
   setSourceUrl: (url: string) => void;
+  setZoomScale: (zoomScale: number, animated?: boolean) => void;
 }
 
 export const ControlledWebviewView = forwardRef<
@@ -35,6 +38,11 @@ export const ControlledWebviewView = forwardRef<
     setSourceUrl: (url: string) => {
       if (nativeRef.current) {
         Commands.setSourceUrl(nativeRef.current, url);
+      }
+    },
+    setZoomScale: (zoomScale: number, animated = false) => {
+      if (nativeRef.current) {
+        Commands.setZoomScale(nativeRef.current, zoomScale, animated);
       }
     },
   }));

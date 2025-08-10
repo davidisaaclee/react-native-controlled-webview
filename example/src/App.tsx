@@ -7,6 +7,8 @@ import {
 
 export default function App() {
   const [contentOffset, setContentOffset] = useState({ x: 0, y: 0 });
+  const [zoomScale, setZoomScale] = useState(1.0);
+  const [zoomAnimated, setZoomAnimated] = useState(true);
   const webviewRef = useRef<ControlledWebviewViewRef>(null);
 
   return (
@@ -24,6 +26,10 @@ export default function App() {
           //   event.nativeEvent.contentOffset.x,
           //   event.nativeEvent.contentOffset.y
           // );
+        }}
+        onZoomScaleChange={(event) => {
+          setZoomScale(event.nativeEvent.zoomScale);
+          // console.log('onZoomScaleChange', event.nativeEvent.zoomScale);
         }}
         style={styles.box}
       />
@@ -50,6 +56,31 @@ export default function App() {
           }}
         />
         <Text>{`Content Offset: ${contentOffset.x.toFixed(0)}, ${contentOffset.y.toFixed(0)}`}</Text>
+        <Text>{`Zoom Scale: ${zoomScale.toFixed(2)}`}</Text>
+        <Button
+          title={`Zoom Animation: ${zoomAnimated ? 'ON' : 'OFF'}`}
+          onPress={() => {
+            setZoomAnimated(!zoomAnimated);
+          }}
+        />
+        <Button
+          title="Zoom In"
+          onPress={() => {
+            webviewRef.current?.setZoomScale(zoomScale * 1.5, zoomAnimated);
+          }}
+        />
+        <Button
+          title="Zoom Out"
+          onPress={() => {
+            webviewRef.current?.setZoomScale(zoomScale / 1.5, zoomAnimated);
+          }}
+        />
+        <Button
+          title="Reset Zoom"
+          onPress={() => {
+            webviewRef.current?.setZoomScale(1.0, zoomAnimated);
+          }}
+        />
         <Button
           title="Google"
           onPress={() => {

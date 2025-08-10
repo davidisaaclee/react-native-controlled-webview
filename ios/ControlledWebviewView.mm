@@ -78,6 +78,13 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
   self.eventEmitter.onContentOffsetChange(result);
 }
 
+- (void)scrollViewDidZoom:(UIScrollView *)scrollView
+{
+  ControlledWebviewViewEventEmitter::OnZoomScaleChange result = ControlledWebviewViewEventEmitter::OnZoomScaleChange();
+  result.zoomScale = scrollView.zoomScale;
+  self.eventEmitter.onZoomScaleChange(result);
+}
+
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
 {
     if ([keyPath isEqualToString:@"URL"] && object == _webView) {
@@ -113,6 +120,13 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
             if (_sourceURL && _sourceURL.scheme && _sourceURL.host) {
                 [_webView loadRequest:[NSURLRequest requestWithURL:_sourceURL]];
             }
+        }
+    } else if ([commandName isEqualToString:@"setZoomScale"]) {
+        if (args.count >= 1) {
+            CGFloat zoomScale = [args[0] doubleValue];
+            BOOL animated = args.count > 1 ? [args[1] boolValue] : NO;
+
+            [_webView.scrollView setZoomScale:zoomScale animated:animated];
         }
     }
 }

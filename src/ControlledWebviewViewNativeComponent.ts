@@ -8,11 +8,13 @@ import type { HostComponent, ViewProps } from 'react-native';
 
 type ContentOffsetChangeEvent = { contentOffset: { x: Double; y: Double } };
 type SourceUrlChangeEvent = { sourceUrl: string };
+type ZoomScaleChangeEvent = { zoomScale: Double };
 
 export interface NativeProps extends ViewProps {
   initialSourceUrl?: string;
   onSourceUrlChange?: DirectEventHandler<SourceUrlChangeEvent>;
   onContentOffsetChange?: DirectEventHandler<ContentOffsetChangeEvent>;
+  onZoomScaleChange?: DirectEventHandler<ZoomScaleChangeEvent>;
 }
 
 interface NativeCommands {
@@ -26,10 +28,15 @@ interface NativeCommands {
     viewRef: React.ElementRef<HostComponent<NativeProps>>,
     url: string
   ) => void;
+  setZoomScale: (
+    viewRef: React.ElementRef<HostComponent<NativeProps>>,
+    zoomScale: Double,
+    animated?: boolean
+  ) => void;
 }
 
 export const Commands = codegenNativeCommands<NativeCommands>({
-  supportedCommands: ['setContentOffset', 'setSourceUrl'],
+  supportedCommands: ['setContentOffset', 'setSourceUrl', 'setZoomScale'],
 });
 
 export default codegenNativeComponent<NativeProps>(
