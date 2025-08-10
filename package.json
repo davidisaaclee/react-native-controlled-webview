@@ -58,16 +58,6 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
-  "codegenConfig": {
-    "name": "AppSpec",
-    "type": "components",
-    "jsSrcsDir": "src",
-    "ios": {
-      "componentProvider": {
-        "ControlledWebviewView": "RCTWebView"
-      }
-    }
-  },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.6.0",
     "@eslint/compat": "^1.2.7",
