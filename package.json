@@ -1,7 +1,7 @@
 {
   "name": "react-native-controlled-webview",
   "version": "0.1.0",
-  "description": "iOS web view with methods to control content offset and zoom scale",
+  "description": "iOS-only web view with methods to control content offset and zoom scale",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {
@@ -43,7 +43,8 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "ios-only",
+    "webview"
   ],
   "repository": {
     "type": "git",
@@ -148,6 +149,14 @@
     "ios": {
       "componentProvider": {
         "ControlledWebviewView": "ControlledWebviewView"
+      }
+    }
+  },
+  "react-native": {
+    "platforms": {
+      "ios": {
+        "sourceDir": "./ios",
+        "folder": "ios"
       }
     }
   },

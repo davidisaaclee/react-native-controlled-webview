@@ -1,24 +1,43 @@
 # react-native-controlled-webview
 
-iOS web view with methods to control content offset and zoom scale
+**iOS-only** web view with methods to control content offset and zoom scale
+
+> ⚠️ **Platform Support**: This package only supports iOS. Android and web platforms are not supported.
 
 ## Installation
-
 
 ```sh
 npm install react-native-controlled-webview
 ```
 
+**iOS Setup:**
+```sh
+cd ios && pod install
+```
+
+## Platform Requirements
+
+- **iOS**: iOS 11.0+
+- **React Native**: 0.60+
+- **Android**: ❌ Not supported
+- **Web**: ❌ Not supported
 
 ## Usage
-
 
 ```js
 import { ControlledWebviewView } from "react-native-controlled-webview";
 
 // ...
 
-<ControlledWebviewView color="tomato" />
+<ControlledWebviewView
+  initialSourceUrl="https://example.com"
+  onContentOffsetChange={(event) => {
+    console.log('Content offset:', event.nativeEvent.contentOffset);
+  }}
+  onZoomScaleChange={(event) => {
+    console.log('Zoom scale:', event.nativeEvent.zoomScale);
+  }}
+/>
 ```
 
 

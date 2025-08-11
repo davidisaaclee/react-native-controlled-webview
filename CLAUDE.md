@@ -17,13 +17,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-This is a React Native library created with create-react-native-library that provides a controlled WebView component for iOS and Android. The library uses React Native's new Fabric/TurboModules architecture.
+This is an **iOS-only** React Native library created with create-react-native-library that provides a controlled WebView component. The library uses React Native's new Fabric/TurboModules architecture and does not support Android or web platforms.
 
 ### Key Components:
 
 - **Native Component Interface** (`src/ControlledWebviewViewNativeComponent.ts`): Defines the TypeScript interface for the native component with props for `sourceUrl`, `contentOffset`, and event handlers
 - **iOS Implementation** (`ios/ControlledWebviewView.mm`): Objective-C++ implementation using WKWebView with scroll position control and event emission
-- **Android Implementation** (`android/src/main/java/com/controlledwebview/`): Kotlin implementation (currently minimal View stub)
+- **Android Implementation**: ❌ Not supported - package is iOS-only
 - **JavaScript Entry Point** (`src/index.tsx`): Exports the native component
 
 ### Core Functionality:
@@ -39,7 +39,8 @@ The library provides a WebView that allows:
 - Uses `react-native-builder-bob` for library compilation
 - Outputs to `lib/` directory with both module and TypeScript declaration files
 - Supports both old and new React Native architectures
-- Uses Turbo for build caching with separate iOS/Android pipelines
+- Uses Turbo for build caching with iOS-only pipeline
+- Includes platform check that throws error on non-iOS platforms
 
 ### Development Workflow:
 

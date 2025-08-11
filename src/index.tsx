@@ -1,4 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import { Platform } from 'react-native';
 import NativeControlledWebviewView, { Commands } from './ControlledWebviewViewNativeComponent';
 import type { ViewProps } from 'react-native';
 import type {
@@ -27,6 +28,13 @@ export const ControlledWebviewView = forwardRef<
   ControlledWebviewViewRef,
   ControlledWebviewViewProps
 >((props, ref) => {
+  // Platform check - only iOS is supported
+  if (Platform.OS !== 'ios') {
+    throw new Error(
+      `react-native-controlled-webview: Unsupported platform "${Platform.OS}". This package only supports iOS.`
+    );
+  }
+
   const nativeRef = useRef<React.ElementRef<typeof NativeControlledWebviewView>>(null);
 
   useImperativeHandle(ref, () => ({
