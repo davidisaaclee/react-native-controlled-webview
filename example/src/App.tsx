@@ -19,17 +19,10 @@ export default function App() {
         onSourceUrlChange={(event) => {
           console.log('onSourceUrlChange', event.nativeEvent);
         }}
-        onContentOffsetChange={(event) => {
+        onViewportChange={(event) => {
+          console.log('Viewport change', event.nativeEvent);
           setContentOffset(event.nativeEvent.contentOffset);
-          // console.log(
-          //   'onContentOffsetChange',
-          //   event.nativeEvent.contentOffset.x,
-          //   event.nativeEvent.contentOffset.y
-          // );
-        }}
-        onZoomScaleChange={(event) => {
           setZoomScale(event.nativeEvent.zoomScale);
-          // console.log('onZoomScaleChange', event.nativeEvent.zoomScale);
         }}
         style={styles.box}
       />
@@ -53,6 +46,28 @@ export default function App() {
           title="Scroll to top"
           onPress={() => {
             webviewRef.current?.setContentOffset(0, 0, true);
+          }}
+        />
+        <Button
+          title="Animate viewport"
+          onPress={() => {
+            let i = 0;
+            const intervalHandle = setInterval(() => {
+              if (i > 100) {
+                clearInterval(intervalHandle);
+                return;
+              }
+
+              webviewRef.current?.setViewport(
+                {
+                  zoomScale: 1.0 + i / 100,
+                  contentOffset: { x: i, y: i * 10 },
+                },
+                true
+              );
+
+              i++;
+            }, 1);
           }}
         />
         <Text>{`Content Offset: ${contentOffset.x.toFixed(0)}, ${contentOffset.y.toFixed(0)}`}</Text>

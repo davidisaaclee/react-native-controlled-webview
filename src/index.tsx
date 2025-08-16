@@ -1,26 +1,33 @@
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { Platform } from 'react-native';
-import NativeControlledWebviewView, { Commands } from './ControlledWebviewViewNativeComponent';
+import NativeControlledWebviewView, {
+  Commands,
+} from './ControlledWebviewViewNativeComponent';
 import type { ViewProps } from 'react-native';
 import type {
   DirectEventHandler,
   Double,
 } from 'react-native/Libraries/Types/CodegenTypes';
 
-type ContentOffsetChangeEvent = { contentOffset: { x: Double; y: Double } };
 type SourceUrlChangeEvent = { sourceUrl: string };
-type ZoomScaleChangeEvent = { zoomScale: Double };
+type ViewportChangeEvent = {
+  contentOffset: { x: Double; y: Double };
+  zoomScale: Double;
+};
 
 export interface ControlledWebviewViewProps extends ViewProps {
   initialSourceUrl?: string;
   onSourceUrlChange?: DirectEventHandler<SourceUrlChangeEvent>;
-  onContentOffsetChange?: DirectEventHandler<ContentOffsetChangeEvent>;
-  onZoomScaleChange?: DirectEventHandler<ZoomScaleChangeEvent>;
+  onViewportChange?: DirectEventHandler<ViewportChangeEvent>;
 }
 
 export interface ControlledWebviewViewRef {
   setContentOffset: (x: number, y: number, animated?: boolean) => void;
   setSourceUrl: (url: string) => void;
+  setViewport: (
+    viewport: { zoomScale: number; contentOffset: { x: number; y: number } },
+    animated?: boolean
+  ) => void;
   setZoomScale: (zoomScale: number, animated?: boolean) => void;
 }
 
@@ -35,12 +42,13 @@ export const ControlledWebviewView = forwardRef<
     );
   }
 
-  const nativeRef = useRef<React.ElementRef<typeof NativeControlledWebviewView>>(null);
+  const nativeRef =
+    useRef<React.ElementRef<typeof NativeControlledWebviewView>>(null);
 
   useImperativeHandle(ref, () => ({
     setContentOffset: (x: number, y: number, animated = false) => {
       if (nativeRef.current) {
-        Commands.setContentOffset(nativeRef.current, x, y, animated);
+        Commands.setViewport(nativeRef.current, x, y, undefined, animated);
       }
     },
     setSourceUrl: (url: string) => {
@@ -48,9 +56,26 @@ export const ControlledWebviewView = forwardRef<
         Commands.setSourceUrl(nativeRef.current, url);
       }
     },
+    setViewport(viewport, animated = false) {
+      if (nativeRef.current) {
+        Commands.setViewport(
+          nativeRef.current,
+          viewport.contentOffset.x,
+          viewport.contentOffset.y,
+          viewport.zoomScale,
+          animated
+        );
+      }
+    },
     setZoomScale: (zoomScale: number, animated = false) => {
       if (nativeRef.current) {
-        Commands.setZoomScale(nativeRef.current, zoomScale, animated);
+        Commands.setViewport(
+          nativeRef.current,
+          undefined,
+          undefined,
+          zoomScale,
+          animated
+        );
       }
     },
   }));

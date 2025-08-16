@@ -71,18 +71,20 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-
-  ControlledWebviewViewEventEmitter::OnContentOffsetChange result = ControlledWebviewViewEventEmitter::OnContentOffsetChange();
+  ControlledWebviewViewEventEmitter::OnViewportChange result = ControlledWebviewViewEventEmitter::OnViewportChange();
   result.contentOffset.x = scrollView.contentOffset.x;
   result.contentOffset.y = scrollView.contentOffset.y;
-  self.eventEmitter.onContentOffsetChange(result);
+  result.zoomScale = scrollView.zoomScale;
+  self.eventEmitter.onViewportChange(result);
 }
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView
 {
-  ControlledWebviewViewEventEmitter::OnZoomScaleChange result = ControlledWebviewViewEventEmitter::OnZoomScaleChange();
+  ControlledWebviewViewEventEmitter::OnViewportChange result = ControlledWebviewViewEventEmitter::OnViewportChange();
+  result.contentOffset.x = scrollView.contentOffset.x;
+  result.contentOffset.y = scrollView.contentOffset.y;
   result.zoomScale = scrollView.zoomScale;
-  self.eventEmitter.onZoomScaleChange(result);
+  self.eventEmitter.onViewportChange(result);
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
@@ -105,35 +107,43 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
 
 - (void)handleCommand:(const NSString *)commandName args:(const NSArray *)args
 {
-    if ([commandName isEqualToString:@"setContentOffset"]) {
-        if (args.count >= 2) {
-            CGFloat x = [args[0] doubleValue];
-            CGFloat y = [args[1] doubleValue];
-            BOOL animated = args.count > 2 ? [args[2] boolValue] : NO;
+    if ([commandName isEqualToString:@"setViewport"]) {
+        if (args.count >= 4) {
+            CGFloat x = (args[0] == nil || [args[0] isKindOfClass:[NSNull class]]) ? NAN : [args[0] doubleValue];
+            CGFloat y = (args[1] == nil || [args[1] isKindOfClass:[NSNull class]]) ? NAN : [args[1] doubleValue];
+            CGFloat zoomScale = (args[2] == nil || [args[2] isKindOfClass:[NSNull class]]) ? NAN : [args[2] doubleValue];
+            BOOL animated = (args[3] == nil || [args[3] isKindOfClass:[NSNull class]]) ? NO : [args[3] boolValue];
 
-            [_webView.scrollView setContentOffset:CGPointMake(x, y) animated:animated];
+            if (!isnan(x) || !isnan(y)) {
+                CGPoint contentOffset = _webView.scrollView.contentOffset;
+                if (!isnan(x)) {
+                    contentOffset.x = x;
+                }
+                if (!isnan(y)) {
+                    contentOffset.y = y;
+                }
+                [_webView.scrollView setContentOffset:contentOffset animated:animated];
+            }
+            if (!isnan(zoomScale)) {
+                [_webView.scrollView setZoomScale:zoomScale animated:animated];
+            }
         }
     } else if ([commandName isEqualToString:@"setSourceUrl"]) {
         if (args.count >= 1) {
             NSString *urlString = args[0];
-            _sourceURL = [NSURL URLWithString:urlString];
-            if (_sourceURL && _sourceURL.scheme && _sourceURL.host) {
-                [_webView loadRequest:[NSURLRequest requestWithURL:_sourceURL]];
+            if ([urlString isKindOfClass:[NSString class]]) {
+                _sourceURL = [NSURL URLWithString:urlString];
+                if (_sourceURL && _sourceURL.scheme && _sourceURL.host) {
+                    [_webView loadRequest:[NSURLRequest requestWithURL:_sourceURL]];
+                }
             }
-        }
-    } else if ([commandName isEqualToString:@"setZoomScale"]) {
-        if (args.count >= 1) {
-            CGFloat zoomScale = [args[0] doubleValue];
-            BOOL animated = args.count > 1 ? [args[1] boolValue] : NO;
-
-            [_webView.scrollView setZoomScale:zoomScale animated:animated];
         }
     }
 }
 
 - (void)dealloc
 {
-    [_webView removeObserver:self forKeyPath:@"URL"];
+  [_webView removeObserver:self forKeyPath:@"URL"];
 }
 
 - (const ControlledWebviewViewEventEmitter &)eventEmitter
@@ -143,16 +153,16 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
 
 - hexStringToColor:(NSString *)stringToConvert
 {
-    NSString *noHashString = [stringToConvert stringByReplacingOccurrencesOfString:@"#" withString:@""];
-    NSScanner *stringScanner = [NSScanner scannerWithString:noHashString];
-
-    unsigned hex;
-    if (![stringScanner scanHexInt:&hex]) return nil;
-    int r = (hex >> 16) & 0xFF;
-    int g = (hex >> 8) & 0xFF;
-    int b = (hex) & 0xFF;
-
-    return [UIColor colorWithRed:r / 255.0f green:g / 255.0f blue:b / 255.0f alpha:1.0f];
+  NSString *noHashString = [stringToConvert stringByReplacingOccurrencesOfString:@"#" withString:@""];
+  NSScanner *stringScanner = [NSScanner scannerWithString:noHashString];
+  
+  unsigned hex;
+  if (![stringScanner scanHexInt:&hex]) return nil;
+  int r = (hex >> 16) & 0xFF;
+  int g = (hex >> 8) & 0xFF;
+  int b = (hex) & 0xFF;
+  
+  return [UIColor colorWithRed:r / 255.0f green:g / 255.0f blue:b / 255.0f alpha:1.0f];
 }
 
 @end
