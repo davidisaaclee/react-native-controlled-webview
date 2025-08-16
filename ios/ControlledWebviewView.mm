@@ -125,7 +125,14 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
                 [_webView.scrollView setContentOffset:contentOffset animated:animated];
             }
             if (!isnan(zoomScale)) {
-                [_webView.scrollView setZoomScale:zoomScale animated:animated];
+              if (zoomScale > [_webView.scrollView maximumZoomScale]) {
+                [_webView.scrollView setMaximumZoomScale:zoomScale];
+              }
+              if (zoomScale < [_webView.scrollView minimumZoomScale]) {
+                [_webView.scrollView setMinimumZoomScale:zoomScale];
+              }
+
+              [_webView.scrollView setZoomScale:zoomScale animated:animated];
             }
         }
     } else if ([commandName isEqualToString:@"setSourceUrl"]) {
