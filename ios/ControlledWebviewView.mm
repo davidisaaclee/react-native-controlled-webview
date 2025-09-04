@@ -19,6 +19,7 @@ using namespace facebook::react;
     WKWebView * _webView;
     WKUserContentController *_wkContentController;
     BOOL _hasLoadedInitialURL;
+    NSMutableSet *_userMessageNames;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -43,6 +44,7 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
     [wkConfiguration setUserContentController:_wkContentController];
 
     _webView = [[WKWebView alloc] initWithFrame:frame configuration:wkConfiguration];
+    [_webView setInspectable:YES];
     _webView.navigationDelegate = self;
     _webView.UIDelegate = self;
     _webView.scrollView.delegate = self;
@@ -51,6 +53,8 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
     // Add KVO for URL changes
     [_webView addObserver:self forKeyPath:@"URL" options:NSKeyValueObservingOptionNew context:nil];
 
+    _userMessageNames = [NSMutableSet new];
+    
     self.contentView = _webView;
   }
 
@@ -177,7 +181,9 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
 
 - (void)addMessageHandler:(NSString *)name
 {
-  [_wkContentController addScriptMessageHandler:self name:name];
+  if (![_userMessageNames containsObject:name]) {
+    [_wkContentController addScriptMessageHandler:self name:name];
+  }
 }
 
 - hexStringToColor:(NSString *)stringToConvert

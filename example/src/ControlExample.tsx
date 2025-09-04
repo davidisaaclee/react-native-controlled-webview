@@ -26,9 +26,6 @@ export default function App() {
           setContentOffset(event.nativeEvent.contentOffset);
           setZoomScale(event.nativeEvent.zoomScale);
         }}
-        onScriptMessage={(event) => {
-          console.log('Script message received:', event.nativeEvent);
-        }}
         style={styles.box}
       />
 
@@ -126,9 +123,11 @@ export default function App() {
         <Button
           title="Setup Click Handler"
           onPress={() => {
-            // Add the message handler
-            webviewRef.current?.addMessageHandler('clickHandler');
-            
+            // Add the message handler with callback
+            webviewRef.current?.addMessageHandler('clickHandler', (body) => {
+              console.log('Click data received:', body);
+            });
+
             // Add script to track clicks
             webviewRef.current?.addUserScript(
               `document.addEventListener('click', function(event) {

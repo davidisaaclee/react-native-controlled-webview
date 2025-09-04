@@ -20,7 +20,6 @@ export interface ControlledWebviewViewProps extends ViewProps {
   initialSourceUrl?: string;
   onSourceUrlChange?: DirectEventHandler<SourceUrlChangeEvent>;
   onViewportChange?: DirectEventHandler<ViewportChangeEvent>;
-  onScriptMessage?: DirectEventHandler<ScriptMessageEvent>;
 }
 
 export interface ControlledWebviewViewRef {
@@ -36,7 +35,7 @@ export interface ControlledWebviewViewRef {
     injectionTime: number,
     forMainFrameOnly: boolean
   ) => void;
-  addMessageHandler: (name: string) => void;
+  addMessageHandler: (name: string, handler: (body: unknown) => void) => void;
 }
 
 export const ControlledWebviewView = forwardRef<
@@ -52,6 +51,9 @@ export const ControlledWebviewView = forwardRef<
 
   const nativeRef =
     useRef<React.ElementRef<typeof NativeControlledWebviewView>>(null);
+  const messageHandlers = useRef<Map<string, (body: unknown) => void>>(
+    new Map()
+  );
 
   useImperativeHandle(ref, () => ({
     setContentOffset: (x: number, y: number, animated = false) => {
@@ -100,7 +102,8 @@ export const ControlledWebviewView = forwardRef<
         );
       }
     },
-    addMessageHandler: (name: string) => {
+    addMessageHandler: (name: string, handler: (body: unknown) => void) => {
+      messageHandlers.current.set(name, handler);
       if (nativeRef.current) {
         Commands.addMessageHandler(nativeRef.current, name);
       }
@@ -111,23 +114,19 @@ export const ControlledWebviewView = forwardRef<
     <NativeControlledWebviewView
       ref={nativeRef}
       {...props}
-      onScriptMessage={
-        props.onScriptMessage
-          ? (event) => {
-              const { name, body } = event.nativeEvent;
-              let parsedBody;
-              try {
-                parsedBody = JSON.parse(body);
-              } catch {
-                parsedBody = body;
-              }
-              props.onScriptMessage?.({
-                ...event,
-                nativeEvent: { name, body: parsedBody },
-              });
-            }
-          : undefined
-      }
+      onScriptMessage={(event) => {
+        const { name, body } = event.nativeEvent;
+        const handler = messageHandlers.current.get(name);
+        if (handler) {
+          let parsedBody;
+          try {
+            parsedBody = JSON.parse(body);
+          } catch {
+            parsedBody = body;
+          }
+          handler(parsedBody);
+        }
+      }}
     />
   );
 });
