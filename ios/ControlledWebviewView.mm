@@ -10,7 +10,7 @@
 
 using namespace facebook::react;
 
-@interface ControlledWebviewView () <RCTControlledWebviewViewViewProtocol, WKNavigationDelegate, UIScrollViewDelegate>
+@interface ControlledWebviewView () <RCTControlledWebviewViewViewProtocol, WKNavigationDelegate, UIScrollViewDelegate, WKUIDelegate>
 
 @end
 
@@ -44,6 +44,7 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
 
     _webView = [[WKWebView alloc] initWithFrame:frame configuration:wkConfiguration];
     _webView.navigationDelegate = self;
+    _webView.UIDelegate = self;
     _webView.scrollView.delegate = self;
     _hasLoadedInitialURL = NO;
 
@@ -186,6 +187,66 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
   int b = (hex) & 0xFF;
 
   return [UIColor colorWithRed:r / 255.0f green:g / 255.0f blue:b / 255.0f alpha:1.0f];
+}
+
+#pragma mark - WKUIDelegate
+
+- (void)webView:(WKWebView *)webView runJavaScriptAlertPanelWithMessage:(NSString *)message initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(void))completionHandler
+{
+  UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
+                                                                           message:message
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+  
+  UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                     style:UIAlertActionStyleDefault
+                                                   handler:^(UIAlertAction *action) {
+                                                     completionHandler();
+                                                   }];
+  
+  [alertController addAction:okAction];
+  
+  // Find the root view controller to present the alert
+  UIViewController *rootViewController = [UIApplication sharedApplication].delegate.window.rootViewController;
+  while (rootViewController.presentedViewController) {
+    rootViewController = rootViewController.presentedViewController;
+  }
+  
+  [rootViewController presentViewController:alertController animated:YES completion:nil];
+}
+
+- (void)webView:(WKWebView *)webView runJavaScriptTextInputPanelWithPrompt:(NSString *)prompt defaultText:(NSString *)defaultText initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(NSString *))completionHandler
+{
+  UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil
+                                                                           message:prompt
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+  
+  [alertController addTextFieldWithConfigurationHandler:^(UITextField *textField) {
+    textField.text = defaultText;
+  }];
+  
+  UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                     style:UIAlertActionStyleDefault
+                                                   handler:^(UIAlertAction *action) {
+                                                     NSString *text = alertController.textFields.firstObject.text;
+                                                     completionHandler(text);
+                                                   }];
+  
+  UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+                                                         style:UIAlertActionStyleCancel
+                                                       handler:^(UIAlertAction *action) {
+                                                         completionHandler(nil);
+                                                       }];
+  
+  [alertController addAction:okAction];
+  [alertController addAction:cancelAction];
+  
+  // Find the root view controller to present the alert
+  UIViewController *rootViewController = [UIApplication sharedApplication].delegate.window.rootViewController;
+  while (rootViewController.presentedViewController) {
+    rootViewController = rootViewController.presentedViewController;
+  }
+  
+  [rootViewController presentViewController:alertController animated:YES completion:nil];
 }
 
 @end
