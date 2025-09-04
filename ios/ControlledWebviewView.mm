@@ -107,45 +107,7 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
 
 - (void)handleCommand:(const NSString *)commandName args:(const NSArray *)args
 {
-    if ([commandName isEqualToString:@"setViewport"]) {
-        if (args.count >= 4) {
-            CGFloat x = (args[0] == nil || [args[0] isKindOfClass:[NSNull class]]) ? NAN : [args[0] doubleValue];
-            CGFloat y = (args[1] == nil || [args[1] isKindOfClass:[NSNull class]]) ? NAN : [args[1] doubleValue];
-            CGFloat zoomScale = (args[2] == nil || [args[2] isKindOfClass:[NSNull class]]) ? NAN : [args[2] doubleValue];
-            BOOL animated = (args[3] == nil || [args[3] isKindOfClass:[NSNull class]]) ? NO : [args[3] boolValue];
-
-            if (!isnan(x) || !isnan(y)) {
-                CGPoint contentOffset = _webView.scrollView.contentOffset;
-                if (!isnan(x)) {
-                    contentOffset.x = x;
-                }
-                if (!isnan(y)) {
-                    contentOffset.y = y;
-                }
-                [_webView.scrollView setContentOffset:contentOffset animated:animated];
-            }
-            if (!isnan(zoomScale)) {
-              if (zoomScale > [_webView.scrollView maximumZoomScale]) {
-                [_webView.scrollView setMaximumZoomScale:zoomScale];
-              }
-              if (zoomScale < [_webView.scrollView minimumZoomScale]) {
-                [_webView.scrollView setMinimumZoomScale:zoomScale];
-              }
-
-              [_webView.scrollView setZoomScale:zoomScale animated:animated];
-            }
-        }
-    } else if ([commandName isEqualToString:@"setSourceUrl"]) {
-        if (args.count >= 1) {
-            NSString *urlString = args[0];
-            if ([urlString isKindOfClass:[NSString class]]) {
-                _sourceURL = [NSURL URLWithString:urlString];
-                if (_sourceURL && _sourceURL.scheme && _sourceURL.host) {
-                    [_webView loadRequest:[NSURLRequest requestWithURL:_sourceURL]];
-                }
-            }
-        }
-    }
+  RCTControlledWebviewViewHandleCommand(self, commandName, args);
 }
 
 - (void)dealloc
@@ -156,6 +118,44 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
 - (const ControlledWebviewViewEventEmitter &)eventEmitter
 {
   return static_cast<const ControlledWebviewViewEventEmitter &>(*_eventEmitter);
+}
+
+- (void)setViewport:(double)contentOffsetX
+     contentOffsetY:(double)contentOffsetY
+          zoomScale:(double)zoomScale
+           animated:(BOOL)animated
+{
+  CGFloat x = contentOffsetX;
+  CGFloat y = contentOffsetY;
+
+  if (!isnan(x) || !isnan(y)) {
+      CGPoint contentOffset = _webView.scrollView.contentOffset;
+      if (!isnan(x)) {
+          contentOffset.x = x;
+      }
+      if (!isnan(y)) {
+          contentOffset.y = y;
+      }
+      [_webView.scrollView setContentOffset:contentOffset animated:animated];
+  }
+  if (!isnan(zoomScale)) {
+    if (zoomScale > [_webView.scrollView maximumZoomScale]) {
+      [_webView.scrollView setMaximumZoomScale:zoomScale];
+    }
+    if (zoomScale < [_webView.scrollView minimumZoomScale]) {
+      [_webView.scrollView setMinimumZoomScale:zoomScale];
+    }
+
+    [_webView.scrollView setZoomScale:zoomScale animated:animated];
+  }
+}
+
+- (void)setSourceUrl:(NSString *)url
+{
+  _sourceURL = [NSURL URLWithString:url];
+  if (_sourceURL && _sourceURL.scheme && _sourceURL.host) {
+    [_webView loadRequest:[NSURLRequest requestWithURL:_sourceURL]];
+  }
 }
 
 - hexStringToColor:(NSString *)stringToConvert
