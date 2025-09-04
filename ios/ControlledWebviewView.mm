@@ -59,7 +59,7 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
 
 - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps
 {
-    const auto &oldViewProps = *std::static_pointer_cast<ControlledWebviewViewProps const>(_props);
+//    const auto &oldViewProps = *std::static_pointer_cast<ControlledWebviewViewProps const>(_props);
     const auto &newViewProps = *std::static_pointer_cast<ControlledWebviewViewProps const>(props);
 
   // Only load initial URL on first render
