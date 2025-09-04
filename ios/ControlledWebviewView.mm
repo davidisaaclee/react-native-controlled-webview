@@ -17,6 +17,7 @@ using namespace facebook::react;
 @implementation ControlledWebviewView {
     NSURL * _sourceURL;
     WKWebView * _webView;
+    WKUserContentController *_wkContentController;
     BOOL _hasLoadedInitialURL;
 }
 
@@ -36,7 +37,12 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
     static const auto defaultProps = std::make_shared<const ControlledWebviewViewProps>();
     _props = defaultProps;
 
-    _webView = [WKWebView new];
+    _wkContentController = [[WKUserContentController alloc] init];
+
+    WKWebViewConfiguration *wkConfiguration = [[WKWebViewConfiguration alloc] init];
+    [wkConfiguration setUserContentController:_wkContentController];
+
+    _webView = [[WKWebView alloc] initWithFrame:frame configuration:wkConfiguration];
     _webView.navigationDelegate = self;
     _webView.scrollView.delegate = self;
     _hasLoadedInitialURL = NO;
@@ -158,17 +164,27 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
   }
 }
 
+- (void)addUserScript:(NSString *)source
+        injectionTime:(NSInteger)injectionTime
+     forMainFrameOnly:(BOOL)forMainFrameOnly
+{
+  WKUserScript *script = [[WKUserScript alloc] initWithSource:source
+                                                injectionTime:(WKUserScriptInjectionTime)injectionTime
+                                             forMainFrameOnly:forMainFrameOnly];
+  [_wkContentController addUserScript:script];
+}
+
 - hexStringToColor:(NSString *)stringToConvert
 {
   NSString *noHashString = [stringToConvert stringByReplacingOccurrencesOfString:@"#" withString:@""];
   NSScanner *stringScanner = [NSScanner scannerWithString:noHashString];
-  
+
   unsigned hex;
   if (![stringScanner scanHexInt:&hex]) return nil;
   int r = (hex >> 16) & 0xFF;
   int g = (hex >> 8) & 0xFF;
   int b = (hex) & 0xFF;
-  
+
   return [UIColor colorWithRed:r / 255.0f green:g / 255.0f blue:b / 255.0f alpha:1.0f];
 }
 

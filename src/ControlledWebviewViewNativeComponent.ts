@@ -3,6 +3,7 @@ import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativ
 import type {
   DirectEventHandler,
   Double,
+  Int32,
 } from 'react-native/Libraries/Types/CodegenTypes';
 import type { HostComponent, ViewProps } from 'react-native';
 
@@ -18,6 +19,9 @@ export interface NativeProps extends ViewProps {
   onViewportChange?: DirectEventHandler<ViewportChangeEvent>;
 }
 
+export const WKUserScriptInjectionTimeAtDocumentStart = 0;
+export const WKUserScriptInjectionTimeAtDocumentEnd = 1;
+
 interface NativeCommands {
   setViewport: (
     viewRef: React.ElementRef<HostComponent<NativeProps>>,
@@ -30,10 +34,16 @@ interface NativeCommands {
     viewRef: React.ElementRef<HostComponent<NativeProps>>,
     url: string
   ) => void;
+  addUserScript: (
+    viewRef: React.ElementRef<HostComponent<NativeProps>>,
+    source: string,
+    injectionTime: Int32, // see WKUserScriptInjectionTime* constants above
+    forMainFrameOnly: boolean
+  ) => void;
 }
 
 export const Commands = codegenNativeCommands<NativeCommands>({
-  supportedCommands: ['setViewport', 'setSourceUrl'],
+  supportedCommands: ['setViewport', 'setSourceUrl', 'addUserScript'],
 });
 
 export default codegenNativeComponent<NativeProps>(

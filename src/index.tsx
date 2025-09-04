@@ -29,6 +29,11 @@ export interface ControlledWebviewViewRef {
     animated?: boolean
   ) => void;
   setZoomScale: (zoomScale: number, animated?: boolean) => void;
+  addUserScript: (
+    source: string,
+    injectionTime: number,
+    forMainFrameOnly: boolean
+  ) => void;
 }
 
 export const ControlledWebviewView = forwardRef<
@@ -75,6 +80,20 @@ export const ControlledWebviewView = forwardRef<
           undefined,
           zoomScale,
           animated
+        );
+      }
+    },
+    addUserScript: (
+      source: string,
+      injectionTime: number,
+      forMainFrameOnly: boolean
+    ) => {
+      if (nativeRef.current) {
+        Commands.addUserScript(
+          nativeRef.current,
+          source,
+          injectionTime,
+          forMainFrameOnly
         );
       }
     },
