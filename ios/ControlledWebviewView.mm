@@ -10,7 +10,7 @@
 
 using namespace facebook::react;
 
-@interface ControlledWebviewView () <RCTControlledWebviewViewViewProtocol, WKNavigationDelegate, UIScrollViewDelegate, WKUIDelegate>
+@interface ControlledWebviewView () <RCTControlledWebviewViewViewProtocol, WKNavigationDelegate, UIScrollViewDelegate, WKUIDelegate, WKScriptMessageHandler>
 
 @end
 
@@ -175,6 +175,11 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
   [_wkContentController addUserScript:script];
 }
 
+- (void)addMessageHandler:(NSString *)name
+{
+  [_wkContentController addScriptMessageHandler:self name:name];
+}
+
 - hexStringToColor:(NSString *)stringToConvert
 {
   NSString *noHashString = [stringToConvert stringByReplacingOccurrencesOfString:@"#" withString:@""];
@@ -247,6 +252,31 @@ Class<RCTComponentViewProtocol> ControlledWebviewViewCls(void)
   }
   
   [rootViewController presentViewController:alertController animated:YES completion:nil];
+}
+
+#pragma mark - WKScriptMessageHandler
+
+- (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message
+{
+  if (_eventEmitter) {
+    ControlledWebviewViewEventEmitter::OnScriptMessage result = ControlledWebviewViewEventEmitter::OnScriptMessage();
+    result.name = std::string([message.name UTF8String]);
+    
+    // Convert message body to JSON string for serialization
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:message.body
+                                                       options:0
+                                                         error:&error];
+    if (jsonData && !error) {
+      NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+      result.body = std::string([jsonString UTF8String]);
+    } else {
+      // Fallback to string representation if JSON serialization fails
+      result.body = std::string([[message.body description] UTF8String]);
+    }
+    
+    self.eventEmitter.onScriptMessage(result);
+  }
 }
 
 @end

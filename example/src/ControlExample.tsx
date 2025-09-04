@@ -26,6 +26,9 @@ export default function App() {
           setContentOffset(event.nativeEvent.contentOffset);
           setZoomScale(event.nativeEvent.zoomScale);
         }}
+        onScriptMessage={(event) => {
+          console.log('Script message received:', event.nativeEvent);
+        }}
         style={styles.box}
       />
 
@@ -115,6 +118,31 @@ export default function App() {
           onPress={() => {
             webviewRef.current?.addUserScript(
               'alert("Hello from user script! Page loaded successfully.");',
+              WKUserScriptInjectionTimeAtDocumentEnd,
+              true
+            );
+          }}
+        />
+        <Button
+          title="Setup Click Handler"
+          onPress={() => {
+            // Add the message handler
+            webviewRef.current?.addMessageHandler('clickHandler');
+            
+            // Add script to track clicks
+            webviewRef.current?.addUserScript(
+              `document.addEventListener('click', function(event) {
+                if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.clickHandler) {
+                  window.webkit.messageHandlers.clickHandler.postMessage({
+                    clientX: event.clientX,
+                    clientY: event.clientY,
+                    pageX: event.pageX,
+                    pageY: event.pageY,
+                    target: event.target.tagName,
+                    timestamp: Date.now()
+                  });
+                }
+              });`,
               WKUserScriptInjectionTimeAtDocumentEnd,
               true
             );

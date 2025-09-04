@@ -14,11 +14,13 @@ type ViewportChangeEvent = {
   contentOffset: { x: Double; y: Double };
   zoomScale: Double;
 };
+type ScriptMessageEvent = { name: string; body: unknown };
 
 export interface ControlledWebviewViewProps extends ViewProps {
   initialSourceUrl?: string;
   onSourceUrlChange?: DirectEventHandler<SourceUrlChangeEvent>;
   onViewportChange?: DirectEventHandler<ViewportChangeEvent>;
+  onScriptMessage?: DirectEventHandler<ScriptMessageEvent>;
 }
 
 export interface ControlledWebviewViewRef {
@@ -34,6 +36,7 @@ export interface ControlledWebviewViewRef {
     injectionTime: number,
     forMainFrameOnly: boolean
   ) => void;
+  addMessageHandler: (name: string) => void;
 }
 
 export const ControlledWebviewView = forwardRef<
@@ -97,9 +100,36 @@ export const ControlledWebviewView = forwardRef<
         );
       }
     },
+    addMessageHandler: (name: string) => {
+      if (nativeRef.current) {
+        Commands.addMessageHandler(nativeRef.current, name);
+      }
+    },
   }));
 
-  return <NativeControlledWebviewView ref={nativeRef} {...props} />;
+  return (
+    <NativeControlledWebviewView
+      ref={nativeRef}
+      {...props}
+      onScriptMessage={
+        props.onScriptMessage
+          ? (event) => {
+              const { name, body } = event.nativeEvent;
+              let parsedBody;
+              try {
+                parsedBody = JSON.parse(body);
+              } catch {
+                parsedBody = body;
+              }
+              props.onScriptMessage?.({
+                ...event,
+                nativeEvent: { name, body: parsedBody },
+              });
+            }
+          : undefined
+      }
+    />
+  );
 });
 
 export * from './ControlledWebviewViewNativeComponent';
