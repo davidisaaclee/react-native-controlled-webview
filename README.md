@@ -7,7 +7,7 @@
 ## Installation
 
 ```sh
-npm install react-native-controlled-webview
+npm install github:davidisaaclee/react-native-controlled-webview
 ```
 
 **iOS Setup:**
